@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>創作動詞メーカー</title>
+    <style>
+        /* 画面全体をスッキリしたダークモード風のおしゃれなデザインに */
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            box-sizing: border-box;
+            padding: 40px 20px;
+        }
+
+        /* メインの巨大な表示枠 */
+        .verb-container {
+            font-size: min(15vw, 150px); /* 画面幅に合わせて限界まで巨大化 */
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            user-select: none;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* カタカナワード候補のエリア */
+        .candidate-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+
+        /* カタカナチップのスタイル */
+        .candidate-chip {
+            background-color: #333333;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #444;
+            user-select: none;
+        }
+
+        .candidate-chip:hover {
+            background-color: #555555;
+            transform: scale(1.08);
+        }
+
+        .candidate-chip:active {
+            transform: scale(0.95);
+        }
+
+        /* ボタンを並べるエリア */
+        .button-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* ランダムボタンのスタイル */
+        .random-button {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 75, 43, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .random-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 75, 43, 0.6);
+        }
+
+        .random-button:active {
+            transform: translateY(1px);
+        }
+
+        /* Twitter投稿ボタンのスタイル */
+        .twitter-button {
+            background-color: #1da1f2; /* Twitterブルー */
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(29, 161, 242, 0.4);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .twitter-button:hover {
+            transform: translateY(-2px);
+            background-color: #1a91da;
+            box-shadow: 0 6px 20px rgba(29, 161, 242, 0.6);
+        }
+
+        .twitter-button:active {
+            transform: translateY(1px);
+        }
+
+        /* 意味を書き込むエリア */
+        .meaning-container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: #252525;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid #333;
+        }
+
+        .meaning-label {
+            font-size: 0.9rem;
+            color: #888;
+            font-weight: bold;
+        }
+
+        .meaning-input {
+            background-color: #1a1a1a;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 12px 15px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .meaning-input:focus {
+            border-color: #ff4b2b;
+        }
+
+        .meaning-input::placeholder {
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 画面の大半に「☐☐る」を表示 -->
+    <div class="verb-container">
+        <span id="verb-prefix">☐☐</span>る
+    </div>
+
+    <!-- ランダムなカタカナ2文字×10個を表示するエリア -->
+    <div class="candidate-container" id="candidate-area">
+        <!-- JSでここにチップが生成されます -->
+    </div>
+
+    <!-- ボタンエリア -->
+    <div class="button-container">
+        <!-- ランダムボタン -->
+        <button class="random-button" onclick="generateCandidates()">言葉をシャッフル</button>
+        
+        <!-- Twitter投稿ボタン -->
+        <button class="twitter-button" onclick="shareOnTwitter()">
+            𝕏 に投稿する
+        </button>
+    </div>
+
+    <!-- 意味を書き込むエリア -->
+    <div class="meaning-container">
+        <div class="meaning-label" id="meaning-title">「☐☐る」の意味</div>
+        <input type="text" class="meaning-input" id="meaning-input" placeholder="例：限界まで疲れてヨロヨロと歩くこと" oninput="saveMeaning()">
+    </div>
+
+    <script>
+        const katakana = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
+        let currentWord = "☐☐";
+        
+        // 入力した意味を保存するためのオブジェクト
+        const savedMeanings = {};
+
+        // ランダムなカタカナ2文字を作る関数
+        function getRandomWord() {
+            const char1 = katakana[Math.floor(Math.random() * katakana.length)];
+            const char2 = katakana[Math.floor(Math.random() * katakana.length)];
+            return char1 + char2;
+        }
+
+        // 10個のカタカナチップを生成して表示する関数
+        function generateCandidates() {
+            const container = document.getElementById('candidate-area');
+            container.innerHTML = ''; // 一旦クリア
+
+            let firstWord = "";
+
+            for (let i = 0; i < 10; i++) {
+                const word = getRandomWord();
+                if (i === 0) {
+                    firstWord = word; // シャッフル時に自動選択する候補をキープ
+                }
+
+                const chip = document.createElement('div');
+                chip.className = 'candidate-chip';
+                chip.textContent = word;
+                
+                // クリックしたら上の「☐☐」の部分に代入するイベント
+                chip.onclick = function() {
+                    selectWord(word);
+                };
+
+                container.appendChild(chip);
+            }
+
+            // シャッフルボタンを押したら、自動的に最初の1つを選択状態にする
+            selectWord(firstWord);
+        }
+
+        // ワードを選択した時の処理
+        function selectWord(word) {
+            currentWord = word;
+            document.getElementById('verb-prefix').textContent = word;
+            
+            // ラベルのテキストを更新
+            document.getElementById('meaning-title').textContent = `「${word}る」の意味`;
+            
+            // 以前そのワードで意味を入力していたら復元、なければ空にする
+            const input = document.getElementById('meaning-input');
+            input.value = savedMeanings[word] || "";
+            input.placeholder = `例：${word}っとした瞬間に...`;
+
+            // ちょっとしたクリック演出
+            const prefixSpan = document.getElementById('verb-prefix');
+            prefixSpan.style.color = '#ff4b2b';
+            setTimeout(() => {
+                prefixSpan.style.color = '#ffffff';
+            }, 300);
+        }
+
+        // 入力した意味を一時保存する関数
+        function saveMeaning() {
+            if (currentWord !== "☐☐") {
+                const text = document.getElementById('meaning-input').value;
+                savedMeanings[currentWord] = text;
+            }
+        }
+
+        // Twitter投稿処理
+        function shareOnTwitter() {
+            if (currentWord === "☐☐") return;
+
+            const meaning = savedMeanings[currentWord] || "";
+            
+            // 投稿文を作成
+            let tweetText = `【創作動詞】${currentWord}る\n`;
+            if (meaning) {
+                tweetText += `意味：${meaning}\n`;
+            }
+            tweetText += `\n#創作動詞メーカー`;
+
+            // URLエンコード
+            const encodedText = encodeURIComponent(tweetText);
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`;
+
+            // 新しいタブでTwitter投稿画面を開く
+            window.open(twitterUrl, '_blank');
+        }
+
+        // 初回読み込み時に実行
+        generateCandidates();
+    </script>
+</body>
+</html>
